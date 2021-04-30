@@ -1,67 +1,120 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
-	"os"
+	"math/rand"
 	"testing"
 )
 
+var numbers []int
+
+func init() {
+	numbers = generateRandomNumbers()
+}
+
 // Merge slice as in merge sort algorithm
-func merge(a, b []int) []int {
+// a and b are slices to merge
+// n is the slice that is used to store sorted elements
+func merge(a, b, n []int) {
 	if len(a) == 0 {
-		return b
+		copy(n, b)
+		return
 	}
 	if len(b) == 0 {
-		return a
+		copy(n, a)
+		return
 	}
 
 	if a[0] <= b[0] {
-		return append([]int{a[0]}, merge(a[1:], b)...)
+		n[0] = a[0]
+		merge(a[1:], b, n[1:])
+	} else {
+		x := b[0]
+		copy(a[1:len(a)+1], a)
+		a = a[1 : len(a)+1]
+		n[0] = x
+
+		merge(a, b[1:], n[1:])
 	}
-	return append([]int{b[0]}, merge(a, b[1:])...)
 }
 
-// Sort a slice using merge sort algorithm
-func sort(s []int) []int {
+// MergiSort is the recursive fonction used to sort
+// s is the slice to sort
+// n is the slice to store sorted elements
+func mergeSort(s []int, n []int) {
 	if len(s) <= 1 {
-		return s
+		copy(n, s)
+		return
 	}
-	return merge(
-		sort(s[:len(s)/2]),
-		sort(s[len(s)/2:]),
+
+	middle := len(s) / 2
+	mergeSort(s[:middle], n[:middle])
+	mergeSort(s[middle:], n[middle:])
+	merge(
+		n[:middle],
+		n[middle:],
+		n,
 	)
 }
 
-// ReadNumbers form the `./list.json` file
-func readNumbers() []int {
-	list, err := os.ReadFile("./list.json")
-	if err != nil {
-		log.Fatal(err)
+// Sort a slice using merge sort algorithm
+func Sort(s []int) []int {
+	if len(s) <= 1 {
+		return s
 	}
-	var numbers []int
-	err = json.Unmarshal(list, &numbers)
-	if err != nil {
-		log.Fatal(err)
+
+	// Empty slice to fill with sorted elements
+	sorted := make([]int, len(s))
+	mergeSort(s, sorted)
+	return sorted
+}
+
+// IsSorted return true is a []int is sorted, false otherwise
+func isSorted(s []int) bool {
+	for i := 1; i < len(s); i++ {
+		if s[i-1] > s[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// GenerateRandomNumbers generate a slice of 1000 random numbers
+func generateRandomNumbers() []int {
+	numbers := make([]int, 1000)
+
+	for i := 0; i < 1000; i++ {
+		numbers[i] = rand.Intn(10000)
 	}
 
 	return numbers
 }
 
-func TestMergeSort(t *testing.T) {
-	numbers := readNumbers()
-	numbers = sort(numbers)
+func TestSortEmptySlice(t *testing.T) {
+	if !isSorted(Sort([]int{})) {
+		t.Errorf("The slice is not sorted")
+	}
+}
 
-	for i := 1; i < len(numbers); i++ {
-		if numbers[i-1] > numbers[i] {
-			t.Errorf("The list isn't sorted")
-			return
-		}
+func TestSortOneElementInSlice(t *testing.T) {
+	if !isSorted(Sort([]int{4})) {
+		t.Errorf("The slice is not sorted")
+	}
+}
+
+func TestSortOddNumberOfElements(t *testing.T) {
+	if !isSorted(Sort([]int{3, 8, 2, 5, 6})) {
+		t.Errorf("The slice is not sorted")
+	}
+}
+
+func TestSortEvenNumberOfElements(t *testing.T) {
+	if !isSorted(Sort([]int{3, 1, 5, 7, 0, 2})) {
+		t.Errorf("The slice is not sorted")
 	}
 }
 
 func BenchmarkMergeSort(b *testing.B) {
-	numbers := readNumbers()
-
-	b.Run("sort", func(b *testing.B) { sort(numbers) })
+	for i := 0; i < b.N; i++ {
+		Sort(numbers)
+	}
 }

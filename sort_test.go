@@ -37,7 +37,7 @@ func merge(a, b, n []int) {
 	}
 }
 
-// MergiSort is the recursive fonction used to sort
+// MergeSort is the recursive fonction used to sort
 // s is the slice to sort
 // n is the slice to store sorted elements
 func mergeSort(s []int, n []int) {

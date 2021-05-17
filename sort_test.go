@@ -58,10 +58,6 @@ func mergeSort(s []int, n []int) {
 
 // Sort a slice using merge sort algorithm
 func Sort(s []int) []int {
-	if len(s) <= 1 {
-		return s
-	}
-
 	// Empty slice to fill with sorted elements
 	sorted := make([]int, len(s))
 	mergeSort(s, sorted)

@@ -64,7 +64,7 @@ func Sort(s []int) []int {
 	return sorted
 }
 
-// IsSorted return true is a []int is sorted, false otherwise
+// IsSorted return true if a []int is sorted, false otherwise
 func isSorted(s []int) bool {
 	for i := 1; i < len(s); i++ {
 		if s[i-1] > s[i] {

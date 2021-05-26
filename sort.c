@@ -57,7 +57,7 @@ void merge(struct slice a, struct slice b, struct slice n){
     }
 }
 
-// MergeSort is the recursive fonction used to sort
+// MergeSort is the recursive function used to sort
 // s is the slice to sort
 // n is the slice to store sorted elements
 void mergeSort(struct slice s, struct slice n){

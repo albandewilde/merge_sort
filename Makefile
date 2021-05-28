@@ -1,4 +1,4 @@
-all: go python c
+all: go python c cpp
 
 define check_program
 	if [ ! -z `which $(1)` ]; then \
@@ -8,7 +8,7 @@ define check_program
 	fi
 endef
 
-check: check-go check-python check-c
+check: check-go check-python check-c check-cpp
 
 go: check-go
 	GO111MODULE=auto CGO_ENABLED=0 go test -v --bench . --benchmem --timeout 0
@@ -32,4 +32,14 @@ c: check-c
 
 check-c:
 	@$(call check_program,gcc)
+	@$(call check_program,valgrind)
+
+cpp: check-cpp
+	g++ sort.cpp -o sort
+	./sort
+	valgrind --track-origins=no --leak-check=yes ./sort
+	rm sort
+
+check-cpp:
+	@$(call check_program,g++)
 	@$(call check_program,valgrind)

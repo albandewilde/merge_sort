@@ -149,6 +149,7 @@ void main() {
 
     // Generate 1000 numbers
     int *ns = generateRandomNumbers();
+    struct slice unsorted = (struct slice){.arr = ns, .length = 1000};
 
     int REPEAT = 7000;
     printf("Sort array of 1000 elements %d times.\n", REPEAT);
@@ -158,8 +159,6 @@ void main() {
 
     // Do sort REPEAT times
     for (int i = 0; i < REPEAT; i++) {
-        struct slice unsorted = (struct slice){.arr = ns, .length = 1000};
-
         clock_t begin = clock();
         struct slice s = sort(unsorted);
         clock_t end = clock();

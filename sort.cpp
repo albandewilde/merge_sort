@@ -49,12 +49,7 @@ void Slice::del() noexcept {
 // Merge Slice as in merge sort algorithm
 // a and b are Slices to be merge in this
 void Slice::merge(Slice a, Slice b) noexcept {
-    if (a.len == 0) {
-        std::copy(b.arr, b.arr+b.len, arr);
-        return;
-    }
-    if (b.len == 0) {
-        std::copy(a.arr, a.arr+a.len, arr);
+    if (a.len == 0 || b.len == 0) {
         return;
     }
 

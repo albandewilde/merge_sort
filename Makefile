@@ -1,4 +1,4 @@
-all: go python c cpp
+all: go python c cpp rust
 
 define check_program
 	if [ ! -z `which $(1)` ]; then \
@@ -8,7 +8,7 @@ define check_program
 	fi
 endef
 
-check: check-go check-python check-c check-cpp
+check: check-go check-python check-c check-cpp check-rust
 
 go: check-go
 	GO111MODULE=auto CGO_ENABLED=0 go test -v --bench . --benchmem --timeout 0
@@ -43,3 +43,11 @@ cpp: check-cpp
 check-cpp:
 	@$(call check_program,g++)
 	@$(call check_program,valgrind)
+
+rust: check-rust
+	rustc sort.rs --extern rand
+	./sort
+	rm sort
+
+check-rust:
+	@$(call check_program,rustc)

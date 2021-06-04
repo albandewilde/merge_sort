@@ -5,112 +5,68 @@
 #include <assert.h>
 #include <time.h>
 
-// Slice represent a pointer to an array and his length
-struct slice {
-    int *arr;
-    int length;
-};
-
-// Merge slice as in merge sort algorithm
-// a and b are slices to merge
-// n is the slice that is used to store sorted elements
-void merge(struct slice a, struct slice b, struct slice n){
-    if (a.length == 0) {
-        memcpy(n.arr, b.arr, sizeof(int)*a.length);
-        return;
-    }
-    if (b.length == 0) {
-        memcpy(n.arr, a.arr, sizeof(int)*a.length);
+// Merge arrays as in merge sort algorithm
+// Dst is the array that is used to store sorted elements
+// src0 and src1 are array to merge
+void merge(int *dst, int dstLen, int* src0, int src0Len, int *src1, int src1Len) {
+    if (src0Len == 0 || src1Len == 0) {
         return;
     }
 
-    if (a.arr[0] <= b.arr[0]) {
-        n.arr[0] = a.arr[0];
+    if (src0[0] <= src1[0]) {
+        dst[0] = src0[0];
         merge(
-            (struct slice){
-                .arr = a.arr + 1,
-                .length = a.length - 1,
-            },
-            b,
-            (struct slice){
-                .arr = n.arr + 1,
-                .length = n.length - 1,
-            }
+            dst + 1, dstLen - 1,
+            src0 + 1, src0Len - 1,
+            src1, src1Len
         );
     } else {
-        int x = b.arr[0];
-        memcpy(a.arr+1, a.arr, sizeof(int)*a.length);
-        a.arr = a.arr+1;
-        n.arr[0] = x;
+        int x = src1[0];
+        memcpy(src0+1, src0, sizeof(int)*src0Len);
+        src0 = src0 + 1;
+        dst[0] = x;
 
         merge(
-            a,
-            (struct slice){
-                .arr = b.arr + 1,
-                .length = b.length - 1,
-            },
-            (struct slice){
-                .arr = n.arr + 1,
-                .length = n.length + 1,
-            }
+            dst + 1, dstLen - 1,
+            src0, src0Len,
+            src1 + 1, src1Len - 1
         );
     }
 }
 
 // MergeSort is the recursive function used to sort
-// s is the slice to sort
-// n is the slice to store sorted elements
-void mergeSort(struct slice s, struct slice n){
-    if (s.length <= 1) {
-        memcpy(n.arr, s.arr, sizeof(int)*s.length);
+// toSort is the array to sort
+// sorted is the array to store sorted elements
+void mergeSort(int *toSort, int toSortLen, int *sorted, int sortedLen){
+    if (toSortLen <= 1) {
+        memcpy(sorted, toSort, sizeof(int)*toSortLen);
         return;
     }
 
-    int middle = s.length / 2;
+    int middle = toSortLen / 2;
 
-    // Split s in two slice
-    struct slice s0 = {
-        .arr = s.arr,
-        .length = middle,
-    };
-    struct slice s1 = {
-        .arr = s.arr + middle,
-        .length = s.length - middle,
-    };
+    mergeSort(toSort, middle, sorted, middle);
+    mergeSort(toSort + middle, toSortLen - middle, sorted + middle, toSortLen - 1);
 
-    // Split n in two slice
-    struct slice n0 = {
-        .arr = n.arr,
-        .length = middle,
-    };
-    struct slice n1 = {
-        .arr = n.arr + middle,
-        .length = s.length - middle,
-    };
-
-    mergeSort(s0, n0);
-    mergeSort(s1, n1);
-
-    merge(n0, n1, n);
+    merge(
+        sorted, sortedLen,
+        sorted, middle,
+        sorted + middle, toSortLen - middle
+    );
 }
 
-// Sort a slice using merge sort algorithm
-struct slice sort(struct slice s) {
-	// Empty slice to fill with sorted elements
-    struct slice sorted = {
-        .arr = malloc(sizeof(int)*s.length),
-        .length = s.length,
-    };
+// Sort an array using merge sort algorithm
+void sort(int *s, int sLen, int **sorted, int *sortedLen) {
+    *sorted = malloc(sizeof(int)*sLen);
+    *sortedLen= sLen;
 
-    mergeSort(s, sorted);
-
-    return sorted;
+    mergeSort(s, sLen, *sorted, sLen);
 }
 
 // IsSorted return true is a []int is sorted, false otherwise
-bool isSorted(struct slice s) {
-    for (int i = 1; i < s.length; i++) {
-        if (s.arr[i-1] > s.arr[i]) {
+bool isSorted(int *s, int len) {
+    for (int i = 1; i < len; i++) {
+        if (s[i-1] > s[i]) {
             return false;
         }
     }
@@ -130,26 +86,36 @@ int *generateRandomNumbers() {
 
 void main() {
     // Sort empty slice
-    struct slice s0 = sort((struct slice){.arr = (int[]){}, .length = 0});
-    assert(isSorted(s0) == true);
-    free(s0.arr);
+    int *s0;
+    int l0;
+    sort((int[]){}, 0, &s0, &l0);
+    assert(l0 == 0);
+    assert(isSorted(s0, l0) == true);
+    free(s0);
     // Sort one element in slice
-    struct slice s1 = sort((struct slice){.arr = (int[]){4}, .length = 1});
-    assert(isSorted(s1) == true);
-    free(s1.arr);
+    int *s1;
+    int l1;
+    sort((int[]){4}, 1, &s1, &l1);
+    assert(l1 == 1);
+    assert(isSorted(s1, l1) == true);
+    free(s1);
     // Sort odd number of elements
-    struct slice s2 = sort((struct slice){.arr = (int[]){3, 8, 2, 5, 6}, .length = 5});
-    assert(isSorted(s2) == true);
-    free(s2.arr);
+    int *s2;
+    int l2;
+    sort((int[]){3, 8, 2, 5, 6}, 5, &s2, &l2);
+    assert(l2 == 5);
+    assert(isSorted(s2, l2) == true);
+    free(s2);
     // Sort even number of elements
-    struct slice s3 = sort((struct slice){.arr = (int[]){3, 1, 5, 7, 0, 2}, .length = 6});
-    assert(isSorted(s3) == true);
-    free(s3.arr);
+    int *s3;
+    int l3;
+    sort((int[]){3, 1, 5, 7, 0, 2}, 6, &s3, &l3);
+    assert(isSorted(s3, l3) == true);
+    free(s3);
 
 
     // Generate 1000 numbers
-    int *ns = generateRandomNumbers();
-    struct slice unsorted = (struct slice){.arr = ns, .length = 1000};
+    int *unsorted = generateRandomNumbers();
 
     int REPEAT = 7000;
     printf("Sort array of 1000 elements %d times.\n", REPEAT);
@@ -157,20 +123,22 @@ void main() {
     // Total time for each sort
     long int totTime = 0;
 
+    int *sorted;
+    int len = 0;
     // Do sort REPEAT times
     for (int i = 0; i < REPEAT; i++) {
         clock_t begin = clock();
-        struct slice s = sort(unsorted);
+        sort(unsorted, 1000, &sorted, &len);
         clock_t end = clock();
 
         totTime = totTime + (end - begin);
 
         // Free the memory
-        free(s.arr);
+        free(sorted);
     }
 
     // Free the unsorted list
-    free(ns);
+    free(unsorted);
 
     // Display average time to sort the slice
     printf("Average time to sort the slice: %f seconds\n", (float)totTime/CLOCKS_PER_SEC/REPEAT);
